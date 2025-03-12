@@ -1,5 +1,5 @@
 package io.eddayy.flutter_star_prnt
-
+import android.os.Build
 import android.content.Context
 import android.graphics.*
 import android.net.Uri
@@ -455,7 +455,12 @@ public class FlutterStarPrntPlugin : FlutterPlugin, MethodCallHandler {
             var bitmap: Bitmap? = null
             if (URLUtil.isValidUrl(it.get("appendBitmap").toString())) {
               val imageUri: Uri = Uri.parse(it.get("appendBitmap").toString())
-              bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), imageUri)
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                  ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, imageUri))
+              } else {
+                  @Suppress("DEPRECATION")
+                  MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+              }
             } else {
               bitmap = BitmapFactory.decodeFile(it.get("appendBitmap").toString())
             }
@@ -492,7 +497,7 @@ public class FlutterStarPrntPlugin : FlutterPlugin, MethodCallHandler {
         val bothScale: Boolean =
             if (it.containsKey("bothScale")) (it.get("bothScale").toString()).toBoolean() else true
         val text: String = it.get("appendBitmapText").toString()
-        val typeface: Typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+        val typeface: Typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         val bitmap: Bitmap = createBitmapFromText(text, fontSize, width, typeface)
         val rotation: ICommandBuilder.BitmapConverterRotation =
             if (it.containsKey("rotation")) getConverterRotation(it.get("rotation").toString())
